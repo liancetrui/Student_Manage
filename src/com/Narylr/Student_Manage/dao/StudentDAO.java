@@ -8,16 +8,25 @@ import java.util.List;
 
 /**
  * Student Data Access Object
+ * 提供对学生信息的数据库操作接口，包括增删改查等基本功能。
  */
 public class StudentDAO {
     private final Connection connection;
 
+    /**
+     * 构造方法：初始化数据库连接对象
+     * 使用单例模式获取全局唯一的数据库连接实例。
+     */
     public StudentDAO() {
         this.connection = DatabaseConnection.getInstance().getConnection();
     }
 
     /**
-     * Find student by number
+     * 根据学号查找学生信息
+     *
+     * @param studentNo 学生学号（唯一标识）
+     * @return 返回对应的学生对象；若未找到则返回null
+     * @throws SQLException 数据库访问异常时抛出
      */
     public Student findByNo(String studentNo) throws SQLException {
         String sql = "SELECT * FROM student WHERE s_NO = ?";
@@ -33,7 +42,11 @@ public class StudentDAO {
     }
 
     /**
-     * Insert new student
+     * 插入新的学生记录到数据库中
+     *
+     * @param student 待插入的学生对象
+     * @return 操作成功返回true，失败返回false
+     * @throws SQLException 数据库访问异常时抛出
      */
     public boolean insert(Student student) throws SQLException {
         String sql = "INSERT INTO student (s_NO, s_NAME, s_AGE, s_GENDER, s_GRADE, s_TEL, s_EMAIL, s_ADDRESS) " +
@@ -52,7 +65,11 @@ public class StudentDAO {
     }
 
     /**
-     * Update student information
+     * 更新指定学生的全部信息
+     *
+     * @param student 包含更新后数据的学生对象
+     * @return 操作成功返回true，失败返回false
+     * @throws SQLException 数据库访问异常时抛出
      */
     public boolean update(Student student) throws SQLException {
         String sql = "UPDATE student SET s_NAME = ?, s_AGE = ?, s_GENDER = ?, s_GRADE = ?, " +
@@ -71,7 +88,13 @@ public class StudentDAO {
     }
 
     /**
-     * Update specific field
+     * 更新指定学生的某个字段值
+     *
+     * @param studentNo   学生学号
+     * @param fieldName   要更新的字段名称
+     * @param value       新的字段值
+     * @return 操作成功返回true，失败返回false
+     * @throws SQLException 数据库访问异常时抛出
      */
     public boolean updateField(String studentNo, String fieldName, String value) throws SQLException {
         String sql = "UPDATE student SET " + fieldName + " = ? WHERE s_NO = ?";
@@ -83,7 +106,11 @@ public class StudentDAO {
     }
 
     /**
-     * Delete student
+     * 删除指定学号的学生记录
+     *
+     * @param studentNo 学生学号
+     * @return 操作成功返回true，失败返回false
+     * @throws SQLException 数据库访问异常时抛出
      */
     public boolean delete(String studentNo) throws SQLException {
         String sql = "DELETE FROM student WHERE s_NO = ?";
@@ -94,7 +121,10 @@ public class StudentDAO {
     }
 
     /**
-     * Find all students
+     * 查询所有学生的信息列表
+     *
+     * @return 所有学生组成的列表集合
+     * @throws SQLException 数据库访问异常时抛出
      */
     public List<Student> findAll() throws SQLException {
         List<Student> students = new ArrayList<>();
@@ -109,14 +139,22 @@ public class StudentDAO {
     }
 
     /**
-     * Check if student exists
+     * 判断指定学号的学生是否存在
+     *
+     * @param studentNo 学生学号
+     * @return 若存在返回true，否则返回false
+     * @throws SQLException 数据库访问异常时抛出
      */
     public boolean exists(String studentNo) throws SQLException {
         return findByNo(studentNo) != null;
     }
 
     /**
-     * Map ResultSet to Student object
+     * 将查询结果集中的当前行映射为Student对象
+     *
+     * @param rs 结果集对象，需确保已定位至有效行
+     * @return 映射后的Student对象
+     * @throws SQLException 数据库访问异常或字段读取错误时抛出
      */
     private Student mapResultSetToStudent(ResultSet rs) throws SQLException {
         Student student = new Student();

@@ -8,11 +8,21 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.sql.*;
 
+/**
+ * 数据库驱动管理类，用于建立与MySQL数据库的连接，并初始化相关数据库和表结构。
+ */
 public class Driver {
     public static Connection connection;
     private static final String CONFIG_FILE = "db_config.properties";  // 配置文件路径
     private static final String DEVICE_ID_FILE = "device_id.txt";  // 存储设备标识符的文件
 
+    /**
+     * 建立数据库连接的主要方法。
+     * 包括检查配置文件、验证设备合法性、获取用户输入凭据、测试连接有效性，
+     * 并最终完成数据库及表的创建。
+     *
+     * 异常处理：若连接失败会输出提示信息并终止程序运行。
+     */
     public void getConnection() {
         try {
             // 检查配置文件是否存在
@@ -56,14 +66,25 @@ public class Driver {
         }
     }
 
-    // 获取用户输入
+    /**
+     * 获取用户的控制台输入内容。
+     *
+     * @param prompt 提示语句
+     * @return 用户输入的内容字符串
+     */
     private String getUserInput(String prompt) {
         Scanner scanner = new Scanner(System.in);
         System.out.print(prompt);
         return scanner.nextLine();
     }
 
-    // 检查数据库账号密码是否正确
+    /**
+     * 测试提供的数据库用户名和密码是否有效。
+     *
+     * @param username 数据库用户名
+     * @param password 数据库密码
+     * @return 若能成功建立连接则返回true，否则返回false
+     */
     private boolean isDatabaseCredentialsValid(String username, String password) {
         try (Connection testConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/", username, password)) {
             return testConnection != null;
@@ -72,7 +93,13 @@ public class Driver {
         }
     }
 
-    // 保存数据库配置（用户名和密码）到配置文件，密码使用Base64编码
+    /**
+     * 将数据库用户名和经过Base64编码后的密码保存至本地配置文件中。
+     * 同时记录当前设备的唯一标识符以防止跨设备访问。
+     *
+     * @param username 数据库用户名
+     * @param password 数据库密码（明文）
+     */
     private void saveDatabaseConfig(String username, String password) {
         try (FileOutputStream fos = new FileOutputStream(CONFIG_FILE);
              OutputStreamWriter writer = new OutputStreamWriter(fos)) {
@@ -94,7 +121,12 @@ public class Driver {
         }
     }
 
-    // 从配置文件加载数据库配置（用户名和密码）
+    /**
+     * 从本地配置文件中加载数据库用户名和密码。
+     * 密码将被Base64解码后返回。
+     *
+     * @return 包含用户名和密码的数组 [username, password]
+     */
     private String[] loadDatabaseConfig() {
         Properties properties = new Properties();
         try (FileInputStream fis = new FileInputStream(CONFIG_FILE);
@@ -112,18 +144,32 @@ public class Driver {
         }
     }
 
-    // 使用Base64编码密码
+    /**
+     * 对给定的数据进行Base64编码。
+     *
+     * @param data 明文数据
+     * @return 编码后的字符串
+     */
     private String encodeBase64(String data) {
         return Base64.getEncoder().encodeToString(data.getBytes());
     }
 
-    // 使用Base64解码密码
+    /**
+     * 对给定的Base64编码数据进行解码。
+     *
+     * @param encodedData 已编码的数据
+     * @return 解码后的原始字符串
+     */
     private String decodeBase64(String encodedData) {
         byte[] decodedBytes = Base64.getDecoder().decode(encodedData);
         return new String(decodedBytes);
     }
 
-    // 获取设备的唯一标识符（使用MAC地址）
+    /**
+     * 获取本机网络接口的MAC地址作为设备唯一标识符。
+     *
+     * @return MAC地址组成的字符串；如无法获取则返回null
+     */
     private String getDeviceId() {
         try {
             Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
@@ -144,7 +190,11 @@ public class Driver {
         return null;  // 如果无法获取MAC地址，返回null
     }
 
-    // 保存设备ID到文件中
+    /**
+     * 将指定的设备ID写入本地文件以便后续校验。
+     *
+     * @param deviceId 设备唯一标识符
+     */
     private void saveDeviceId(String deviceId) {
         try (FileWriter writer = new FileWriter(DEVICE_ID_FILE)) {
             writer.write(deviceId);
@@ -153,7 +203,12 @@ public class Driver {
         }
     }
 
-    // 检查当前设备是否与之前保存的设备相同
+    /**
+     * 判断当前运行环境是否与上次保存的一致。
+     * 主要通过比较存储在文件中的设备ID实现判断。
+     *
+     * @return 若一致返回true，否则返回false
+     */
     private boolean isSameDevice() {
         try {
             File deviceIdFile = new File(DEVICE_ID_FILE);
